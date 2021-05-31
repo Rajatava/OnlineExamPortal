@@ -3,7 +3,7 @@ const model = require('../models/paper.model')
 const paperController = {
 
     async setPaper (req, res){
-        const result = await model.setPaper(req.body.paperSetterId, req.body.paperName,req.body.startTime,req.body.endTime, req.body.timeLimit, req.body.defaultMarks );
+        const result = await model.setPaper(req.body.paperSetterId, req.body.paperName,req.body.startTime,req.body.endTime, req.body.timeLimit, req.body.defaultMarks ,req.body.isPublic );
         res.json(result);
     },
     async addQna (req, res){
@@ -20,7 +20,15 @@ const paperController = {
     },
     async dropPaper (req, res){
         const result = await model.dropPaper(req.body.paperId, req.body.paperSetterId);
-        res.json(result)
+        res.json(result);
+    },
+    async getPapers (req, res){
+        const result = await model.getPapers(req.body.studentId, req.body.startTimeLLimit, req.body.startTimeULimit);
+        res.json(result);
+    },
+    async addStudents (req, res){
+        const result = await model.addStudents(req.body.paperId, req.body.paperSetterId, req.body.studentIds);
+        res.json(result);
     }
 }
 

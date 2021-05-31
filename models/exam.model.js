@@ -12,6 +12,7 @@ const model = {
     startExam : async (paperId,studentId,examId) => {
         try{
             const paper = await PaperModel.Paper.findById(paperId); 
+
             let student = await StudentModel.Student.findById(studentId);
             let startTimeStamp;
             let endTimeStamp;
@@ -47,6 +48,8 @@ const model = {
                 examId = student.exams[student.exams.length-1]._id;
 
                 await student.save();
+
+                if(!paper.studentIdsAttended.includes(studentId)) paper.studentIdsAttended.push(studentId);
             }
             
             // return the question paper , examId, and endTimeStamp

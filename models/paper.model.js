@@ -3,8 +3,8 @@ const dblog = require('debug')('app:db');
 const paperSetterModel = require('./paperSetter.model');
 
 const timingSchema = new mongoose.Schema({
-    startTime : { type : String, required : true }, // toISOString();
-    endTime : { type: String, required : true }, //toISOString();
+    startTime : { type : Date, required : true }, // toISOString();
+    endTime : { type: Date, required : true }, //toISOString();
     timeLimit: { type: String, required : true },  //hh:mm
 })
 
@@ -49,6 +49,14 @@ const paperSchema = new mongoose.Schema({
     studentIds : [{
         type: mongoose.Schema.Types.ObjectId , ref: 'Student'
     }],
+    studentIdsAttended : [{
+        type: mongoose.Schema.Types.ObjectId , ref: 'Student'
+    }],
+    isPublic : {
+        type : Boolean,
+        default : true
+    },
+
 });
 
 const Paper = mongoose.model('Paper', paperSchema);
@@ -60,7 +68,7 @@ const Timing = mongoose.model('Timing', timingSchema);
 const model = {
 
     Paper : Paper,
-    setPaper : async (paperSetterId, paperName, startTime, endTime, timeLimit, defaultMarks) => {
+    setPaper : async (paperSetterId, paperName, startTime, endTime, timeLimit, defaultMarks, isPublic) => {
     
         dblog(paperSetterId);
    
@@ -69,12 +77,13 @@ const model = {
             const paper = new Paper({
                 name: `${paperName}`,
                 timing : new Timing({
-                    startTime : `${startTime}`,
-                    endTime : `${endTime}`,
-                    timeLimit : `${timeLimit}`,
+                    startTime : new Date(startTime),
+                    endTime : new Date(endTime),
+                    timeLimit : timeLimit,
                 }),
                 defaultMarks: parseInt(defaultMarks),
-                paperSetterIds : [paperSetterId]
+                paperSetterIds : [paperSetterId],
+                isPublic : isPublic
             })
             
             await paper.validate();
@@ -187,6 +196,50 @@ const model = {
         }  
         catch (err){
             dblog(err);
+            return 0;
+        } 
+    },
+    addStudents : async (paperId, paperSetterId, studentIds) => {
+        try{
+            let paper = await Paper.findOne({
+                '_id' : paperId,
+                'isPublic' : false,
+                'paperSetterIds' : { $in:  [paperSetterId] } 
+            }
+            )
+            if(paper){
+                studentIds.forEach(id =>  !paper.studentIds.includes(id) && paper.studentIds.push(id));
+                paper =  await paper.save();
+                return {paperId : paperId, paperSetterId : paperSetterId, studentIds : paper.studentIds}
+            }else{
+                return {result : 0};
+            }
+
+        }
+        catch(err){
+            dblog("error in adding students",err);
+            return 0;
+        }
+
+    },
+    getPapers : async (studentId, startTimeLLimit, startTimeULimit) => {
+        try{
+            const papers = await Paper.find({
+                'timing.startTime' : { 
+                    $gte : new Date(startTimeLLimit), 
+                    $lte : new Date(startTimeULimit)
+                },
+                $or : [
+                    {'isPublic' : true},
+                    {'studentIds' : { $in : [studentId] } }
+                ]
+            }, 
+            {'name' : 1, 'timing' : 1, '_id' : 1});
+            
+            return papers;
+        }  
+        catch (err){
+            dblog("error in feching papers",err);
             return 0;
         } 
     }
