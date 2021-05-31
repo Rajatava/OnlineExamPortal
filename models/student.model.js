@@ -65,6 +65,20 @@ const model = {
             
             return 0;
         }
+    },
+    studentLogin : async(email) => {
+        try{
+            const profile = await Student.findOne({email : email}, {email : 1, userId : 1, name : 1, 'exams.paperId' : 1});
+            if(profile){
+                return profile;
+            }else{
+                return {result : 0};
+            }
+        }
+        catch(err){
+            dblog("login error :"+err);
+            return 0;
+        }
     }
 }
 

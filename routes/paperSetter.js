@@ -4,6 +4,7 @@ const controller = require('../controllers/paperSetter.controller')
 
 
 router.post('/signup', controller.signup);
+router.post('/login', controller.login);
 router.post('/get-response', controller.getResponse);
 router.post('/get-marks', controller.getMarks);
 router.post('/set-marks', controller.setMarks);

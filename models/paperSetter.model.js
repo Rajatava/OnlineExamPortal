@@ -43,6 +43,20 @@ const model = {
             return 0;
         }
     },
+    paperSetterLogin : async(email) => {
+        try{
+            const profile = await PaperSetter.findOne({email : email}, {email : 1, userId : 1, name : 1, papers : 1});
+            if(profile){
+                return profile;
+            }else{
+                return {result : 0};
+            }
+        }
+        catch(err){
+            dblog("login error :"+err);
+            return 0;
+        }
+    },
     addPaperToPaperSettersProfile : async (paperSetterId, paperId) => {
         try{
             const paperSetter = await PaperSetter.findById(paperSetterId);
